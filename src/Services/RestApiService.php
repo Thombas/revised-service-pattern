@@ -9,6 +9,7 @@ use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Client\PendingRequest;
+use Symfony\Component\Finder\SplFileInfo;
 use Thombas\RevisedServicePattern\Services\Traits\HasUrl;
 use Thombas\RevisedServicePattern\Services\Traits\HasMethod;
 use Thombas\RevisedServicePattern\Services\Traits\HasHeaders;
@@ -135,34 +136,41 @@ abstract class RestApiService extends PendingRequest
 
         $files = File::allFiles($directory);
 
-        $specificClass = get_called_class();
-
         $methods = [];
 
         foreach ($files as $file) {
-            $filePath = $file->getRealPath();
-            $declaredBefore = get_declared_classes();
-
-            require_once $filePath;
-
-            $declaredAfter = get_declared_classes();
-            $newClasses = array_diff($declaredAfter, $declaredBefore);
-
-            foreach ($newClasses as $class) {
-                $reflection = new ReflectionClass($class);
-                if ($reflection->isSubclassOf($specificClass)) {
-                    $relative = static::getRelativePath($file->getPathname(), $directory);
-                    $methodName = static::buildMethodName($relative);
-                    $className = $reflection->getName();
-                    $methods[$methodName] = function (...$args) use ($className) {
-                        return app($className, $args)->__invoke();
-                    };
-                    break;
-                }
+            $class = static::getClassNameFromFile(
+                file: $file,
+                baseNamespace: Str::beforeLast(static::class, '\\'),
+            );
+            
+            if (!is_null($class) && (new ReflectionClass($class))->isInstantiable() && is_subclass_of($class, static::class)) {
+                $relative = static::getRelativePath($file->getPathname(), $directory);
+                $methodName = static::buildMethodName($relative);
+                $methods[$methodName] = function (...$args) use ($class) {
+                    return app($class, $args)->__invoke();
+                };
             }
         }
 
         return $methods;
+    }
+
+    private static function getClassNameFromFile(
+        SplFileInfo $file,
+        string $baseNamespace,
+    ): ?string {
+        $relativePath = $file->getRelativePath();
+
+        if (substr($relativePath, -4) === '.php') {
+            $relativePath = substr($relativePath, 0, -4);
+        } else {
+            return null;
+        }
+
+        $classPath = str_replace(DIRECTORY_SEPARATOR, '\\', $relativePath);
+
+        return $baseNamespace . '\\' . $classPath;
     }
 
     private static function getRelativePath(string $path, string $directory): string

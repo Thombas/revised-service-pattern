@@ -32,7 +32,7 @@ trait HasCacheMethods
         mixed $value,
         int $expiresIn = 86400
     ): static {
-        Cache::store('file')->put(
+        Cache::put(
             key: implode('.', [$this->getCacheKey(), $extension]),
             value: $value,
             ttl: $expiresIn
