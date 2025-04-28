@@ -1,4 +1,4 @@
 <?php
 
-namespace Thombas\RevisedRepositoryPattern\Tests\Features;
+namespace Thombas\RevisedServicePattern\Tests\Features;
 

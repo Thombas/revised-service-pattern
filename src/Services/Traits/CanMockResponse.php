@@ -4,18 +4,26 @@ namespace Thombas\RevisedServicePattern\Services\Traits;
 
 use ReflectionClass;
 use Illuminate\Http\Client\Response;
+use Thombas\RevisedServicePattern\Exceptions\ServiceStubMissingException;
 
 trait CanMockResponse
 {
-    protected string $stub;
-
     protected function getStub(): Response
     {
-        $parameters = (new ReflectionClass($this))->getConstructor()->getParameters();
+        if (!$this->stub) {
+            throw new ServiceStubMissingException(message: 'A stub has not been set for this service: ' . get_class($this));
+        }
 
-        $parameters = collect($parameters)->mapWithKeys(fn ($param) => [$param->name => $this->{$param->name}]);
+        $response = str_replace(
+            config('revised-service-pattern.folders.services', 'App\Services'),
+            config('revised-service-pattern.folders.stubs','Tests\Stubs\Services'),
+            get_class($this) . 'Stub'
+        );
 
-        return (new $this->stub(...$parameters));
+        $parameters = collect((new ReflectionClass($this))->getConstructor()->getParameters())
+            ->mapWithKeys(fn ($param) => [$param->name => $this->{$param->name}]);
+
+        return (new $response(code: $this->stub, parameters: $parameters))();
     }
 
     public function isMocking(): bool

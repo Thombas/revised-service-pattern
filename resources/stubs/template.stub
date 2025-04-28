@@ -1,0 +1,27 @@
+<?php
+
+namespace {namespace};
+
+use Thombas\RevisedServicePattern\Templates\BaseTemplate;
+use Illuminate\Validation\Validator;
+
+class {class} extends BaseTemplate
+{
+    public function __construct(
+
+    ) {
+        parent::__construct();
+    }
+
+    public function __invoke()
+    {
+        return [
+
+        ];
+    }
+
+    protected function validator(): ?Validator
+    {
+        return null;
+    }
+}

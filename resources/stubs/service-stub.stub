@@ -1,0 +1,10 @@
+<?php
+
+namespace {namespace};
+
+use Thombas\RevisedServicePattern\Services\Stubs\BaseServiceStub;
+
+abstract class {class} extends BaseServiceStub
+{
+
+}

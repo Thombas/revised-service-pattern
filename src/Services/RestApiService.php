@@ -36,6 +36,12 @@ abstract class RestApiService extends PendingRequest
 
     protected ?array $validation = null;
 
+    public function __construct(
+        public ?string $stub = null
+    ) {
+        parent::__construct();
+    }
+
     public function __invoke(
         bool $format = true
     ) {
@@ -56,12 +62,12 @@ abstract class RestApiService extends PendingRequest
             return $before;
         }
 
-        $response = ($this->isMocking() ? $this->getStub() : $this->setup())
+        $response = ($this->isMocking() ? $this->getStub() : $this->setup()
             ->withHeaders($this->getHeaders())
             ->{$this->getMethod()}(
                 $this->getUrl(),
                 $this->getParameters()
-            );
+            ));
 
         if ($this->async) {
             $response = $response->wait();

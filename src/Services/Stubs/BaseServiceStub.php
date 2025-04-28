@@ -2,32 +2,31 @@
 
 namespace Thombas\RevisedServicePattern\Services\Stubs;
 
-use GuzzleHttp\Psr7\Response;
+use GuzzleHttp\Psr7\Response as Psr7Response;
+use Illuminate\Http\Client\Response as ClientResponse;
+use Illuminate\Support\Collection;
 
 abstract class BaseServiceStub
 {
-    protected static string $code = 'success';
-
-    public static function as(
-        $code
-    ): static {
-        static::$code = $code;
-
-        return new static;
+    public function __construct(
+        public string $code,
+        public Collection $parameters
+    ) {
+        
     }
 
-    public function __invoke(): Response
+    public function __invoke(): ClientResponse
     {
-        return new Response(
-            status: $this->getResponseStatus(code: static::$code),
-            headers: $this->getResponseHeaders(code: static::$code),
-            body: json_encode($this->getResponseBody(code: static::$code)),
-        );
+        return new ClientResponse(new Psr7Response(
+            status: $this->status(),
+            headers: $this->headers(),
+            body: json_encode($this->body())
+        ));
     }
 
-    abstract protected function getResponseStatus(string $code): int;
+    abstract public function status(): int;
 
-    abstract protected function getResponseHeaders(string $code): array;
+    abstract public function headers(): array;
 
-    abstract protected function getResponseBody(string $code): array;
+    abstract public function body(): array;
 }

@@ -1,0 +1,32 @@
+<?php
+
+namespace {namespace};
+
+use {basestubclass};
+use Illuminate\Http\Response;
+
+final class {class} extends {basestub}
+{
+    const Success = 'ok';
+
+    public function status(): int
+    {
+        return match ($this->code) {
+            default => Response::HTTP_OK,
+        };
+    }
+
+    public function headers(): array
+    {
+        return match ($this->code) {
+            default => [],
+        };
+    }
+
+    public function body(): array
+    {
+        return match ($this->code) {
+            default => [],
+        };
+    }
+}
