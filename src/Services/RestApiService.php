@@ -166,7 +166,7 @@ abstract class RestApiService extends PendingRequest
         SplFileInfo $file,
         string $baseNamespace,
     ): ?string {
-        $relativePath = $file->getRelativePath();
+        $relativePath = $file->getRelativePathname();
 
         if (substr($relativePath, -4) === '.php') {
             $relativePath = substr($relativePath, 0, -4);
