@@ -1,0 +1,46 @@
+<?php
+
+namespace {namespace};
+
+use {baseservicenamespace};
+use Illuminate\Http\Client\Response;
+use Thombas\RevisedServicePattern\Enums\ServiceMethodEnum;
+
+abstract class {class} extends {baseservice}
+{
+    public function __construct(
+        public ?string $stub = null,
+    ) {
+        parent::__construct(stub: $stub);
+    }
+
+    protected function setup(): static
+    {
+        return parent::setup()
+            ->setUrl(url: '')
+            ->setMethod(method: ServiceMethodEnum::Get);
+    }
+
+    protected function before(): ?Response
+    {
+        return null;
+    }
+
+    protected function validate(
+        Response $response
+    ): void {
+        return;
+    }
+
+    protected function after(
+        object $response
+    ): void {
+        return;
+    }
+
+    protected function format(
+        mixed $response
+    ): object {
+        return $response->json();
+    }
+}

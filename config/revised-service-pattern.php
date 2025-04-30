@@ -17,7 +17,7 @@ return [
 
     'folders' => [
         'services' => 'App\Services',
+        'stubs' => 'Tests\Stubs\Services',
         'templates' => 'App\Templates',
-        'tests' => 'Tests\Stubs\Services',
     ],
 ];

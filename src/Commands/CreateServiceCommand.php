@@ -4,9 +4,9 @@ namespace Thombas\RevisedServicePattern\Commands;
 
 use Thombas\RevisedServicePattern\Commands\BaseCreateFileCommand;
 
-class CreateServiceStubCommand extends BaseCreateFileCommand
+class CreateServiceCommand extends BaseCreateFileCommand
 {
-    protected $signature = 'service:stub:create
+    protected $signature = 'service:create
         {service : The name of the service file class}
         {--endpoint= : The file name of the endpoint (optional)}';
 
@@ -14,20 +14,20 @@ class CreateServiceStubCommand extends BaseCreateFileCommand
     {
         if ($this->option('endpoint')) {
             $namespace = $this->getFileNamespace(
-                base: config('revised-service-pattern.folders.stubs'),
+                base: config('revised-service-pattern.folders.services'),
                 namespace: $this->argument('service')
             );
 
             $baseName = last(explode('\\', $this->formatForNamespace($this->argument('service'))));
 
-            $file = $this->convertNamespaceToPath(namespace: $namespace . '/' . $baseName . '/' . $baseName . 'Stub.php');
+            $file = $this->convertNamespaceToPath(namespace: $namespace . '/' . $baseName . '/' . $baseName . 'Service.php');
 
             if (!$this->fileExists(file: $file)) {
-                $this->call('service:stub:create', [
+                $this->call('service:create', [
                     'service' => $this->argument('service')
                 ]);
 
-                $this->info('Base stub was not yet generated, please re-run the command again');
+                $this->info('Base service was not yet generated, please re-run the command again');
 
                 return;
             }
@@ -39,10 +39,10 @@ class CreateServiceStubCommand extends BaseCreateFileCommand
     protected function stub(): string
     {
         if ($this->option('endpoint')) {
-            return __DIR__ . '/../../resources/stubs/endpoint-stub.stub';
+            return __DIR__ . '/../../resources/stubs/endpoint.stub';
         }
 
-        return __DIR__ . '/../../resources/stubs/service-stub.stub';
+        return __DIR__ . '/../../resources/stubs/service.stub';
     }
 
     protected function namespace(): string
@@ -62,22 +62,22 @@ class CreateServiceStubCommand extends BaseCreateFileCommand
     protected function filename(): string
     {
         if ($this->option('endpoint')) {
-            return last(explode('\\', $this->formatForNamespace($this->option('endpoint') . 'Stub')));
+            return last(explode('\\', $this->formatForNamespace($this->option('endpoint'))));
         }
 
-        return last(explode('\\', $this->formatForNamespace($this->argument('service') . 'Stub')));
+        return last(explode('\\', $this->formatForNamespace($this->argument('service') . 'Service')));
     }
 
     protected function replace(): array
     {
         if ($this->option('endpoint')) {
-            $file = last(explode('\\', $this->formatForNamespace($this->argument('service') . 'Stub')));
+            $file = last(explode('\\', $this->formatForNamespace($this->argument('service') . 'Service')));
 
             return [
                 '{namespace}' => $this->namespace(),
                 '{class}' => $this->filename(),
-                '{basestubclass}' => $this->getBaseServiceNamespace() . '\\' . $file,
-                '{basestub}' => $file,
+                '{baseservicenamespace}' => $this->getBaseServiceNamespace() . '\\' . $file,
+                '{baseservice}' => $file,
             ];
         }
 
@@ -90,17 +90,17 @@ class CreateServiceStubCommand extends BaseCreateFileCommand
     protected function after(): void
     {
         if ($this->option('endpoint')) {
-            $this->info("Endpoint Stub " . $this->filename() . " created successfully");
+            $this->info("Endpoint Service " . $this->filename() . " created successfully");
             return;
         }
 
-        $this->info("Base Stub " . $this->filename() . " created successfully");
+        $this->info("Base Service " . $this->filename() . " created successfully");
     }
 
     private function getBaseServiceNamespace(): string
     {
         $namespace = $this->getFileNamespace(
-            base: config('revised-service-pattern.folders.stubs'),
+            base: config('revised-service-pattern.folders.services'),
             namespace: $this->argument('service')
         );
 

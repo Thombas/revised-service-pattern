@@ -1,0 +1,19 @@
+<?php
+
+namespace {namespace};
+
+use Thombas\RevisedServicePattern\Services\RestApiService;
+
+abstract class {class} extends RestApiService
+{
+    public function __construct(
+        public ?string $stub = null,
+    ) {
+        parent::__construct(stub: $stub);
+    }
+
+    protected function setup(): static
+    {
+        return $this;
+    }
+}

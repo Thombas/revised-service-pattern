@@ -35,6 +35,8 @@ abstract class BaseCreateFileCommand extends Command
         $this->createClassFile(namespace: $this->namespace(), filename: $this->filename(), stub: $stub);
 
         $this->after();
+
+        return;
     }
 
     protected function formatForNamespace(
@@ -64,6 +66,24 @@ abstract class BaseCreateFileCommand extends Command
         mixed $stub,
         ?string $extension = 'php'
     ) {
+        $fullDir = $this->convertNamespaceToPath(namespace: $namespace);
+
+        if (!$this->fileExists($fullDir)) {
+            File::makeDirectory($fullDir, 0755, true);
+        }
+
+        $filePath = $fullDir . '/' . $filename . '.' . $extension;
+
+        if ($this->fileExists($filePath)) {
+            throw new \Exception("File already exists: $filePath");
+        }
+
+        File::put($filePath, $stub);
+    }
+
+    protected function convertNamespaceToPath(
+        string $namespace
+    ): string {
         $baseDir = match (explode('\\', $namespace)[0]) {
             'App' => app_path(),
             'Tests' => base_path('tests'),
@@ -72,18 +92,12 @@ abstract class BaseCreateFileCommand extends Command
 
         $namespacePath = ltrim(strstr(str_replace('\\', '/', $namespace), '/', false), '/');
 
-        $fullDir = $baseDir . '/' . $namespacePath;
+        return $baseDir . '/' . $namespacePath;;
+    }
 
-        if (!File::exists($fullDir)) {
-            File::makeDirectory($fullDir, 0755, true);
-        }
-
-        $filePath = $fullDir . '/' . $filename . '.' . $extension;
-
-        if (File::exists($filePath)) {
-            throw new \Exception("File already exists: $filePath");
-        }
-
-        File::put($filePath, $stub);
+    protected function fileExists(
+        string $file
+    ): bool {
+        return File::exists($file);
     }
 }
