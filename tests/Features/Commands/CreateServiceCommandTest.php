@@ -1,7 +1,8 @@
 <?php
 
-namespace Thombas\RevisedServicePattern\Tests\Features;
+namespace Thombas\RevisedServicePattern\Tests\Features\Commands;
 
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
 
 it('generates the XeroService file with the correct namespace', function () {
@@ -9,7 +10,6 @@ it('generates the XeroService file with the correct namespace', function () {
     $serviceDir  = app_path("Services/{$serviceName}");
     $serviceFile = "{$serviceDir}/{$serviceName}Service.php";
 
-    // Ensure a clean slate
     if (File::exists($serviceFile)) {
         File::delete($serviceFile);
     }
@@ -17,20 +17,15 @@ it('generates the XeroService file with the correct namespace', function () {
         File::deleteDirectory($serviceDir);
     }
 
-    // Run the command
-    $this->call('service:create', ['name' => $serviceName])
-        ->assertExitCode(0);
+    Artisan::call('service:create', ['service' => $serviceName]);
 
-    // Assert the file was created
     expect(File::exists($serviceFile))->toBeTrue();
 
-    // Assert the namespace declaration is correct
     $contents = File::get($serviceFile);
     expect($contents)
         ->toContain("namespace App\Services\\{$serviceName};")
         ->toContain("class {$serviceName}Service");
 
-    // Clean up
     File::delete($serviceFile);
     File::deleteDirectory($serviceDir);
 });
