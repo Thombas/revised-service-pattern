@@ -36,6 +36,8 @@ abstract class RestApiService extends PendingRequest
 
     protected ?array $validation = null;
 
+    protected mixed $clientResponse;
+
     public function __construct(
         public ?string $stub = null
     ) {
@@ -62,7 +64,7 @@ abstract class RestApiService extends PendingRequest
             return $before;
         }
 
-        $response = ($this->isMocking() ? $this->getStub() : $this->setup()
+        $this->clientResponse = ($this->isMocking() ? $this->getStub() : $this->setup()
             ->withHeaders($this->getHeaders())
             ->{$this->getMethod()}(
                 $this->getUrl(),
@@ -70,14 +72,14 @@ abstract class RestApiService extends PendingRequest
             ));
 
         if ($this->async) {
-            $response = $response->wait();
+            $this->clientResponse = $this->clientResponse->wait();
         }
 
-        $this->validate(response: $response);
+        $this->validate(response: $this->clientResponse);
 
-        $this->after(response: $response);
+        $this->after(response: $this->clientResponse);
 
-        return $response;
+        return $this->clientResponse;
     }
 
     abstract protected function setup(): static;
@@ -235,5 +237,13 @@ abstract class RestApiService extends PendingRequest
         }
         
         return $class ?: null;
+    }
+
+    protected function overrideResponse(
+        Response $response
+    ): static {
+        $this->clientResponse = $response;
+
+        return $this;
     }
 }
