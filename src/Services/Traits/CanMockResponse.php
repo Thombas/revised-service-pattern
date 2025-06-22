@@ -10,6 +10,8 @@ trait CanMockResponse
 {
     protected function getStub(): Response
     {
+        $this->stub = $this->stub ?? $this->defaultStub();
+        
         if (!$this->stub) {
             throw new ServiceStubMissingException(message: 'A stub has not been set for this service: ' . get_class($this));
         }
@@ -29,5 +31,10 @@ trait CanMockResponse
     public function isMocking(): bool
     {
         return app()->environment() === 'testing';
+    }
+
+    public function defaultStub(): ?string
+    {
+        return null;
     }
 }
