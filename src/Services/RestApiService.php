@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Client\PendingRequest;
 use Symfony\Component\Finder\SplFileInfo;
+use Thombas\RevisedServicePattern\Services\Traits\AutoPaginates;
 use Thombas\RevisedServicePattern\Services\Traits\HasUrl;
 use Thombas\RevisedServicePattern\Services\Traits\HasMethod;
 use Thombas\RevisedServicePattern\Services\Traits\HasHeaders;
@@ -33,6 +34,8 @@ abstract class RestApiService extends PendingRequest
     use HasParameters;
 
     use HasUrl;
+
+    use AutoPaginates;
 
     protected ?array $validation = null;
 
