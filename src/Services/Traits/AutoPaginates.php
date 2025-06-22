@@ -11,13 +11,15 @@ trait AutoPaginates
         array|Collection $items,
         int $total,
         int $perPage,
-        int $page
+        int $page,
+        string $pageKey = 'page',
     ): Paginator {
         return Paginator::fromApiResponse(
             items: $items,
             total: $total,
             perPage: $perPage,
             page: $page,
+            pageKey: $pageKey,
             caller: $this,
         );
     }
