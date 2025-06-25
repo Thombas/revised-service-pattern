@@ -1,17 +1,17 @@
 <?php
 
-namespace Thombas\RevisedServicePattern\Services;
+namespace Thombas\RevisedServicePattern\Services\Paginators;
 
 use Closure;
 use ReflectionClass;
 use RuntimeException;
 use Illuminate\Support\Str;
-use Illuminate\Support\Collection;
 use Illuminate\Support\LazyCollection;
-use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\Paginator as BasePaginator;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Thombas\RevisedServicePattern\Services\Paginators\Interfaces\PaginatorInterface;
 
-class Paginator
+class PagePaginator implements PaginatorInterface
 {
     public function __construct(
         protected string $service,
@@ -19,9 +19,7 @@ class Paginator
         protected LengthAwarePaginator $paginator,
         protected string $key,
         protected array $parameters
-    ) {
-        
-    }
+    ) {}
 
     public function count(): int
     {
@@ -37,92 +35,69 @@ class Paginator
     {
         return LazyCollection::make(function () {
             $page = $this;
-    
             do {
-                $items = $page->get();
-
-                foreach ($items as $item) {
+                foreach ($page->get() as $item) {
                     yield $item;
-                }
-
-                unset($items);
-
-                if (function_exists('gc_collect_cycles')) {
-                    gc_collect_cycles();
                 }
             } while (
                 $page->paginator->hasMorePages() &&
                 ($page = $page->next())
             );
-            
-            unset($page);
-
-            if (function_exists('gc_collect_cycles')) {
-                gc_collect_cycles();
-            }
         });
     }
 
-    public function first()
+    public function first(): mixed
     {
-        return $this->paginator->items()[0];
+        return $this->paginator->items()[0] ?? null;
     }
 
-    public function next(): ?Paginator
+    public function next(): ?PaginatorInterface
     {
-        if ($this->paginator->hasMorePages()) {
-            $method = Str::camel(Str::afterLast($this->method, '\\'));
-
-            return $this->service::$method(...array_merge($this->parameters, [
-                $this->key => ($this->paginator->currentPage() + 1)
-            ]));
+        if (! $this->paginator->hasMorePages()) {
+            return null;
         }
 
-        return null;
+        $method = Str::camel(Str::afterLast($this->method, '\\'));
+
+        return $this->service::$method(...array_merge(
+            $this->parameters,
+            [$this->key => $this->paginator->currentPage() + 1]
+        ));
     }
 
-    public function previous(): ?Paginator
+    public function previous(): ?PaginatorInterface
     {
-        if (!$this->paginator->onFirstPage()) {
-            $method = Str::camel(Str::afterLast($this->method, '\\'));
-
-            return $this->service::$method(...array_merge($this->parameters, [
-                $this->key => ($this->paginator->currentPage() - 1)
-            ]));
+        if ($this->paginator->onFirstPage()) {
+            return null;
         }
 
-        return null;
+        $method = Str::camel(Str::afterLast($this->method, '\\'));
+
+        return $this->service::$method(...array_merge(
+            $this->parameters,
+            [$this->key => $this->paginator->currentPage() - 1]
+        ));
     }
 
-    public function each(
-        Closure $callback
-    ): void {
+    public function each(Closure $callback): void
+    {
         $page = $this;
-
         do {
-            $items = $page->get();
-            $callback($items);
-
-            unset($items);
-            if (function_exists('gc_collect_cycles')) {
-                gc_collect_cycles();
-            }
+            $callback($page->get());
         } while (
-            $page->paginator->hasMorePages() && ($page = $page->next())
+            $page->paginator->hasMorePages() &&
+            ($page = $page->next())
         );
-
-        unset($page);
-        gc_collect_cycles();
     }
 
-    public static function fromApiResponse(
+    public static function fromLengthAware(
         object $caller,
-        array|Collection $items,
+        array|\Illuminate\Support\Collection $items,
         int $total,
         int $perPage,
         int $page,
-        string $pageKey = 'page',
-    ): self {
+        string $pageKey = 'page'
+    ): PaginatorInterface {
         $parameters = [];
         $service = null;
         $method = null;
