@@ -17,6 +17,8 @@ interface PaginatorInterface
 
     public function next(): ?PaginatorInterface;
 
+    public function hasNext(): mixed;
+
     public function previous(): ?PaginatorInterface;
 
     public function each(Closure $callback): void;

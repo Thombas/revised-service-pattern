@@ -70,6 +70,11 @@ class CursorPaginator implements PaginatorInterface
         );
     }
 
+    public function hasNext(): mixed
+    {
+        return $this->nextCursor ?: null;
+    }
+
     public function previous(): ?PaginatorInterface
     {
         return null;

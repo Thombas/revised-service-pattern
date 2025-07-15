@@ -65,6 +65,11 @@ class PagePaginator implements PaginatorInterface
         ));
     }
 
+    public function hasNext(): mixed
+    {
+        return $this->paginator->hasMorePages();
+    }
+
     public function previous(): ?PaginatorInterface
     {
         if ($this->paginator->onFirstPage()) {
